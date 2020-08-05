@@ -1,0 +1,40 @@
+1.
+VCdata<-read.csv("VitaminC.csv", header = TRUE)
+VCdata$dose<-gl(3, 10, labels = c("Placebo", "Low Dose of Vitamin C", "High Dose of Vitamin C"))
+lineVC<-ggplot(VCdata, aes(dose, diff))
+lineVC + stat_summary(fun.y = mean, geom = "point") + stat_summary(fun.y = mean, geom = "line", aes(group = 1), colour = "Blue", linetype = "solid") + stat_summary(fun.data = mean_cl_boot, geom = "errorbar", width = 0.2) + labs(x = "Dose of Vitamin C", y = "Difference in Number of Cold Days")
+by(VCdata$diff, VCdata$dose, stat.desc, basic = FALSE, norm = TRUE)
+leveneTest(VCdata$diff, VCdata$dose, center = median)
+VCmodel<-aov(diff~dose, data = VCdata)
+summary(VCmodel)
+contrast1<-c(-2,1,1)
+contrast2<-c(0,-1,1)
+contrasts(VCdata$dose)<-cbind(contrast1, contrast2)
+VCdata$dose
+VCmodel<-aov(diff~dose, data = VCdata)
+summary.lm(VCmodel)
+contrasts(VCdata$dose)<-contr.poly(3)
+VCtrendy<-aov(diff~dose, data = VCdata)
+summary.lm(VCtrendy)
+
+2.
+noteData<-read.csv("NoteTaking.csv", header = TRUE)
+noteBoxplot<-ggplot(noteData, aes(method, gpaimpr))
+noteBoxplot + geom_boxplot() + labs(x="Method of Note Taking", y = "Improvement in GPA") + facet_wrap( ~ gender)
+by(noteData$gpaimpr, list(noteData$method, noteData$gender), stat.desc, basic = FALSE, norm = TRUE)
+leveneTest(noteData$gpaimpr, interaction(noteData$method, noteData$gender), center = median)
+noteModel<-aov(gpaimpr ~ method*gender, data = noteData)
+summary(noteModel)
+noteBar <- ggplot(noteData, aes(method, gpaimpr))
+noteBar + stat_summary(fun.y = mean, geom = "bar", fill = "White", colour = "Black") + stat_summary(fun.data = mean_cl_normal, geom = "errorbar", width = 0.2) + labs(x = "Method of Note Taking", y = "Improvement of GPA") 
+noteBar <- ggplot(noteData, aes(gender, gpaimpr))
+noteBar + stat_summary(fun.y = mean, geom = "bar", fill = "White", colour = "Black") + stat_summary(fun.data = mean_cl_normal, geom = "errorbar", width = 0.2) + labs(x = "Gender", y = "Improvement of GPA") 
+lineNotes<-ggplot(noteData, aes(method, gpaimpr, colour = gender))
+lineNotes + stat_summary(fun.y = mean, geom = "point") + stat_summary(fun.y = mean, geom = "line", aes(group = gender)) + stat_summary(fun.data = mean_cl_boot, geom = "errorbar", width = 0.2) + labs(x = "Method of Note Taking", y = "Improvement of GPA", colour = "Gender")
+contrasts(noteData$method)<-cbind(c(-2, 1, 1), c(0, -1, 1))
+noteData$method
+contrasts(noteData$gender)<-c(-1, 1)
+noteData$gender
+noteModel<-aov(gpaimpr ~ method*gender, data = noteData)
+summary.lm(noteModel)
+
